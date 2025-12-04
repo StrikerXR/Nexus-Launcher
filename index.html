@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google</title>
-    <link id="favicon" rel="icon" href="https://www.google.com/favicon.ico">
+    <title>Nexus Launcher</title>
+    <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
     <style>
         :root {
             --glass-bg: rgba(20, 20, 20, 0.6);
@@ -141,7 +141,7 @@
         /* --- CAROUSEL REWRITTEN --- */
         .carousel-container {
             width: 100%;
-            height: 380px; /* Increased to allow hover effect space */
+            height: 380px;
             padding-top: 40px;
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: var(--glass-blur);
@@ -149,7 +149,7 @@
             border-top: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
-            position: relative; /* For arrow positioning */
+            position: relative;
         }
 
         /* Nav Buttons for Carousel */
@@ -175,14 +175,12 @@
 
         .carousel {
             display: flex;
-            gap: 25px; /* Consistent gap */
+            gap: 25px;
             overflow-x: auto;
-            padding: 0 80px 40px 80px; /* Side padding */
+            padding: 0 80px 40px 80px;
             width: 100%;
             height: 100%;
             align-items: center;
-            /* REMOVED scroll-behavior: smooth to prevent JS fighting */
-            /* REMOVED mandatory scroll-snap to prevent 'stuck' feeling */
             scrollbar-width: none; 
             -ms-overflow-style: none;
         }
@@ -190,10 +188,9 @@
         .carousel::-webkit-scrollbar { display: none; }
         
         .card {
-            /* FIXED SIZING LOGIC */
-            width: 220px;      /* Strict width */
-            height: 280px;     /* Strict height */
-            flex: 0 0 auto;    /* Prevent shrinking/growing */
+            width: 220px;
+            height: 280px;
+            flex: 0 0 auto;
             
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             cursor: pointer;
@@ -221,75 +218,6 @@
             transform: scale(1.1);
             filter: brightness(1.0);
         }
-        
-        /* --- LOGIN SCREEN --- */
-        #login-overlay {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            backdrop-filter: blur(50px);
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 200;
-            display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease, visibility 0.5s;
-        }
-
-        #login-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-
-        .login-box {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(35px);
-            padding: 50px;
-            border-radius: 25px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 400px;
-            box-shadow: 0 20px 80px rgba(0,0,0,0.5);
-            animation: fadeIn 0.8s ease-out;
-        }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .login-box h2 {
-            margin-bottom: 40px; font-size: 2.5rem;
-            background: linear-gradient(90deg, #ffffff, var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        
-        .login-box input {
-            width: 100%; padding: 16px; margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px; background: rgba(0, 0, 0, 0.5);
-            color: white; outline: none; transition: 0.3s;
-        }
-        
-        .login-box input:focus { border-color: var(--accent); background: rgba(0, 0, 0, 0.7); }
-
-        .remember-me {
-            display: flex; align-items: center; margin-bottom: 30px;
-            font-size: 0.95rem; color: var(--text-dim); cursor: pointer;
-        }
-
-        .remember-me input { display: none; }
-        .checkmark {
-            height: 22px; width: 22px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 6px; margin-right: 12px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .remember-me input:checked ~ .checkmark { background-color: var(--accent); border-color: var(--accent); }
-        .checkmark:after {
-            content: "✓"; color: white; display: none; font-size: 14px;
-        }
-        .remember-me input:checked ~ .checkmark:after { display: block; }
-
-        .login-box button {
-            width: 100%; padding: 16px;
-            background: var(--accent); color: white;
-            border: none; border-radius: 15px; font-weight: 700; cursor: pointer;
-            transition: 0.2s;
-        }
-        .login-box button:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
         /* --- SETTINGS --- */
         .settings-panel {
@@ -329,23 +257,6 @@
 </head>
 <body>
 
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2>System Access</h2>
-            <input type="text" id="username-input" placeholder="User Name">
-            <input type="password" id="password-input" placeholder="Password">
-            
-            <label class="remember-me">
-                <input type="checkbox" id="remember-me-checkbox">
-                <span class="checkmark"></span>
-                <span>Stay Signed In</span>
-            </label>
-            
-            <button onclick="attemptLogin()">Log In</button>
-            <div id="login-message" style="margin-top:15px; height:20px;"></div>
-        </div>
-    </div>
-
     <div id="bg-container"></div>
 
     <div class="top-bar">
@@ -363,7 +274,6 @@
         </div>
 
         <div class="carousel-container">
-            <!-- ADDED SCROLL BUTTONS -->
             <div class="scroll-btn left" onclick="scrollCarousel(-1)">&#10094;</div>
             <div class="scroll-btn right" onclick="scrollCarousel(1)">&#10095;</div>
 
@@ -390,7 +300,6 @@
                 </div>
             </div>
 
-            <!-- NEW SHUFFLE OPTION -->
             <div class="setting-item">
                 <h3>Organization</h3>
                 <button class="cloak-btn" style="width: auto; padding: 10px 20px;" onclick="reshuffleGames()">Shuffle Game List</button>
@@ -399,24 +308,20 @@
             <div class="setting-item stacked">
                 <h3>Tab Cloak</h3>
                 <select id="cloak-selector" class="settings-select" onchange="updateCloak()">
+                    <option value="none" selected>Nexus (Default)</option>
                     <option value="google">Google</option>
                     <option value="clever">Clever</option>
                     <option value="ixl">IXL</option>
                     <option value="canvas">Canvas</option>
-                    <option value="none">Nexus</option>
                 </select>
                 <button class="cloak-btn" style="margin-top:10px" onclick="openAboutBlank()">Open in about:blank</button>
             </div>
             
-            <div style="text-align:center; opacity:0.5; font-size:0.8rem;">v26.3 Shuffled</div>
+            <div style="text-align:center; opacity:0.5; font-size:0.8rem;">v26.3 GitHub Edition</div>
         </div>
     </div>
 
     <script>
-        // --- SECURITY ---
-        const CORRECT_USER = "Nexus";
-        const CORRECT_PASS = "6362";
-
         // --- DATA ---
         let games = [
             { title: "Neal.fun", url: "https://neal.fun", image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800", bg: "https://images.unsplash.com/photo-1488554378835-f7acf46e6c98?q=80&w=1920" },
@@ -448,28 +353,6 @@
         const bgContainer = document.getElementById('bg-container');
         const heroTitle = document.getElementById('hero-title');
         const playBtn = document.getElementById('play-button');
-
-        // --- INIT & AUTH ---
-        function attemptLogin() {
-            const u = document.getElementById('username-input').value.trim();
-            const p = document.getElementById('password-input').value.trim();
-            const r = document.getElementById('remember-me-checkbox').checked;
-            const msg = document.getElementById('login-message');
-
-            if (u === CORRECT_USER && p === CORRECT_PASS) {
-                msg.style.color = "#4ade80"; msg.textContent = "Access Granted.";
-                if(r) { localStorage.setItem('nexusPass', p); localStorage.setItem('nexusRem', 'true'); }
-                else { localStorage.removeItem('nexusPass'); localStorage.removeItem('nexusRem'); }
-                setTimeout(() => { document.getElementById('login-overlay').classList.add('hidden'); init(); }, 500);
-            } else {
-                msg.style.color = "#ff7777"; msg.textContent = "Invalid credentials.";
-            }
-        }
-
-        if(localStorage.getItem('nexusRem') === 'true' && localStorage.getItem('nexusPass') === CORRECT_PASS) {
-            document.getElementById('login-overlay').classList.add('hidden');
-            init();
-        }
 
         // --- SHUFFLE FUNCTION ---
         function shuffleArray(array) {
@@ -503,10 +386,14 @@
         function init() {
             // Load Settings
             if(localStorage.getItem('nexusAccent')) updateAccentColor(localStorage.getItem('nexusAccent'));
+            
+            // Default to 'none' if no cloak is saved
             if(localStorage.getItem('tabCloak')) {
                 document.getElementById('cloak-selector').value = localStorage.getItem('tabCloak');
-                updateCloak();
+            } else {
+                document.getElementById('cloak-selector').value = 'none';
             }
+            updateCloak();
 
             // Shuffle on load
             shuffleArray(games);
@@ -562,7 +449,8 @@
         function updateCloak() {
             const val = document.getElementById('cloak-selector').value;
             localStorage.setItem('tabCloak', val);
-            const data = cloaks[val] || cloaks['google'];
+            // Fallback to 'none' instead of 'google'
+            const data = cloaks[val] || cloaks['none'];
             document.title = data.title;
             document.getElementById('favicon').href = data.icon;
         }
@@ -579,6 +467,9 @@
         setInterval(() => {
             document.getElementById('clock').textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         }, 1000);
+
+        // Run immediately
+        init();
 
     </script>
 </body>
