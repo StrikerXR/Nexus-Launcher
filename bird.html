@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google</title>
+    <link id="favicon" rel="icon" href="https://www.google.com/favicon.ico">
+    <style>
+        :root {
+            --glass-bg: rgba(20, 20, 20, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(25px);
+            --accent: #007bff;
+            --accent-soft: rgba(0, 123, 255, 0.4);
+            --text-main: #ffffff;
+            --text-dim: #b0b0b0;
+            --bg-dark: #080808;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- DYNAMIC BACKGROUND --- */
+        #bg-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -2;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 5s ease-out; 
+            filter: brightness(0.4) saturate(1.2);
+            transform: scale(1);
+        }
+
+        .bg-animate { transform: scale(1.05) !important; }
+
+        /* --- UI LAYOUT --- */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 60px;
+            z-index: 10;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 30px;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+        }
+
+        .nav-tab {
+            opacity: 0.7;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-tab.active { opacity: 1; color: var(--text-main); }
+        
+        .nav-tab.active::after {
+            content: ''; position: absolute; bottom: -10px; left: 0;
+            width: 100%; height: 3px;
+            background-color: var(--accent);
+            border-radius: 5px;
+            animation: tabFadeIn 0.3s ease-out; 
+        }
+
+        @keyframes tabFadeIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+        .clock {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(15px);
+        }
+
+        /* --- MAIN CONTENT AREAS --- */
+        .content-view {
+            flex: 1; display: none; flex-direction: column;
+            position: relative; z-index: 5; opacity: 0;
+            transition: opacity 0.5s; 
+        }
+        
+        #games-view { justify-content: flex-end; }
+        #settings-view { justify-content: center; align-items: center; }
+        .content-view.active-view { display: flex; opacity: 1; }
+
+        /* --- HERO SECTION --- */
+        .hero-section {
+            padding: 0 60px 40px 60px;
+            max-width: 800px;
+            animation: slideUp 0.7s forwards; 
+        }
+
+        .game-logo {
+            font-size: 5rem; font-weight: 800; margin-bottom: 30px;
+            background: linear-gradient(180deg, #fff, #c4c4c4);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 20px rgba(0,0,0,0.6);
+        }
+
+        .play-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 16px 50px;
+            background: var(--accent); color: white;
+            font-weight: 700; font-size: 1.1rem;
+            border-radius: 15px; text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 8px 25px var(--accent-soft); 
+        }
+        
+        .play-btn:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.1);
+        }
+
+        /* --- CAROUSEL REWRITTEN --- */
+        .carousel-container {
+            width: 100%;
+            height: 380px; /* Increased to allow hover effect space */
+            padding-top: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            position: relative; /* For arrow positioning */
+        }
+
+        /* Nav Buttons for Carousel */
+        .scroll-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+        }
+
+        .scroll-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .scroll-btn.left { left: 20px; }
+        .scroll-btn.right { right: 20px; }
+
+        .carousel {
+            display: flex;
+            gap: 25px; /* Consistent gap */
+            overflow-x: auto;
+            padding: 0 80px 40px 80px; /* Side padding */
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            /* REMOVED scroll-behavior: smooth to prevent JS fighting */
+            /* REMOVED mandatory scroll-snap to prevent 'stuck' feeling */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+
+        .carousel::-webkit-scrollbar { display: none; }
+        
+        .card {
+            /* FIXED SIZING LOGIC */
+            width: 220px;      /* Strict width */
+            height: 280px;     /* Strict height */
+            flex: 0 0 auto;    /* Prevent shrinking/growing */
+            
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 15px;
+            position: relative;
+            background: #000;
+        }
+        
+        .card img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease-out;
+            filter: brightness(0.85);
+        }
+
+        .card:hover, .card.active {
+            transform: translateY(-15px) scale(1.05);
+            z-index: 100;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+        
+        .card:hover img, .card.active img {
+            transform: scale(1.1);
+            filter: brightness(1.0);
+        }
+        
+        /* --- LOGIN SCREEN --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            backdrop-filter: blur(50px);
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        #login-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(35px);
+            padding: 50px;
+            border-radius: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 400px;
+            box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .login-box h2 {
+            margin-bottom: 40px; font-size: 2.5rem;
+            background: linear-gradient(90deg, #ffffff, var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .login-box input {
+            width: 100%; padding: 16px; margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px; background: rgba(0, 0, 0, 0.5);
+            color: white; outline: none; transition: 0.3s;
+        }
+        
+        .login-box input:focus { border-color: var(--accent); background: rgba(0, 0, 0, 0.7); }
+
+        .remember-me {
+            display: flex; align-items: center; margin-bottom: 30px;
+            font-size: 0.95rem; color: var(--text-dim); cursor: pointer;
+        }
+
+        .remember-me input { display: none; }
+        .checkmark {
+            height: 22px; width: 22px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px; margin-right: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .remember-me input:checked ~ .checkmark { background-color: var(--accent); border-color: var(--accent); }
+        .checkmark:after {
+            content: "✓"; color: white; display: none; font-size: 14px;
+        }
+        .remember-me input:checked ~ .checkmark:after { display: block; }
+
+        .login-box button {
+            width: 100%; padding: 16px;
+            background: var(--accent); color: white;
+            border: none; border-radius: 15px; font-weight: 700; cursor: pointer;
+            transition: 0.2s;
+        }
+        .login-box button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        /* --- SETTINGS --- */
+        .settings-panel {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(50px);
+            padding: 40px; border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            width: 600px; display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .setting-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .setting-item.stacked { flex-direction: column; align-items: flex-start; gap: 15px; }
+
+        .color-options { display: flex; gap: 10px; flex-wrap: wrap; }
+        .color-circle {
+            width: 35px; height: 35px; border-radius: 50%; cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.1); transition: 0.2s;
+        }
+        .color-circle:hover, .color-circle.active { transform: scale(1.1); border-color: white; }
+        .color-circle.custom { background: linear-gradient(45deg, red, blue); overflow: hidden; position: relative; }
+        .color-circle.custom input { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; opacity: 0; cursor: pointer; }
+
+        .settings-select, .cloak-btn {
+            background: rgba(0,0,0,0.3); color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px; border-radius: 10px; width: 100%; outline: none;
+        }
+        .cloak-btn:hover { background: var(--accent); cursor: pointer; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-text { animation: slideUp 0.5s forwards; }
+
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>System Access</h2>
+            <input type="text" id="username-input" placeholder="User Name">
+            <input type="password" id="password-input" placeholder="Password">
+            
+            <label class="remember-me">
+                <input type="checkbox" id="remember-me-checkbox">
+                <span class="checkmark"></span>
+                <span>Stay Signed In</span>
+            </label>
+            
+            <button onclick="attemptLogin()">Log In</button>
+            <div id="login-message" style="margin-top:15px; height:20px;"></div>
+        </div>
+    </div>
+
+    <div id="bg-container"></div>
+
+    <div class="top-bar">
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('games')">Games</div>
+            <div class="nav-tab" onclick="switchTab('settings')">Settings</div>
+        </div>
+        <div class="clock" id="clock">12:00</div>
+    </div>
+
+    <div id="games-view" class="content-view active-view">
+        <div class="hero-section">
+            <div class="game-logo" id="hero-title">Loading...</div>
+            <a href="#" target="_blank" class="play-btn" id="play-button">Play Now</a>
+        </div>
+
+        <div class="carousel-container">
+            <!-- ADDED SCROLL BUTTONS -->
+            <div class="scroll-btn left" onclick="scrollCarousel(-1)">&#10094;</div>
+            <div class="scroll-btn right" onclick="scrollCarousel(1)">&#10095;</div>
+
+            <div class="carousel" id="game-list">
+                <!-- Games injected here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-view" class="content-view">
+        <div class="settings-panel">
+            
+            <div class="setting-item stacked">
+                <h3>Accent Color</h3>
+                <div class="color-options">
+                    <div class="color-circle" style="background: #007bff;" onclick="updateAccentColor('#007bff')"></div>
+                    <div class="color-circle" style="background: #e91e63;" onclick="updateAccentColor('#e91e63')"></div>
+                    <div class="color-circle" style="background: #9c27b0;" onclick="updateAccentColor('#9c27b0')"></div>
+                    <div class="color-circle" style="background: #4caf50;" onclick="updateAccentColor('#4caf50')"></div>
+                    <div class="color-circle" style="background: #ff9800;" onclick="updateAccentColor('#ff9800')"></div>
+                    <div class="color-circle custom">
+                        <input type="color" oninput="updateAccentColor(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW SHUFFLE OPTION -->
+            <div class="setting-item">
+                <h3>Organization</h3>
+                <button class="cloak-btn" style="width: auto; padding: 10px 20px;" onclick="reshuffleGames()">Shuffle Game List</button>
+            </div>
+
+            <div class="setting-item stacked">
+                <h3>Tab Cloak</h3>
+                <select id="cloak-selector" class="settings-select" onchange="updateCloak()">
+                    <option value="google">Google</option>
+                    <option value="clever">Clever</option>
+                    <option value="ixl">IXL</option>
+                    <option value="canvas">Canvas</option>
+                    <option value="none">Nexus</option>
+                </select>
+                <button class="cloak-btn" style="margin-top:10px" onclick="openAboutBlank()">Open in about:blank</button>
+            </div>
+            
+            <div style="text-align:center; opacity:0.5; font-size:0.8rem;">v26.3 Shuffled</div>
+        </div>
+    </div>
+
+    <script>
+        // --- SECURITY ---
+        const CORRECT_USER = "Nexus";
+        const CORRECT_PASS = "6362";
+
+        // --- DATA ---
+        let games = [
+            { title: "Neal.fun", url: "https://neal.fun", image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800", bg: "https://images.unsplash.com/photo-1488554378835-f7acf46e6c98?q=80&w=1920" },
+            { title: "Accel City", url: "https://www.cs2n.org/u/mp/badge_pages/2859", image: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=800", bg: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=1920" },
+            { title: "Boredom V1", url: "https://extremecalculators.web.app", image: "https://images.unsplash.com/photo-1755609342513-f058de877a3f?q=80&w=654&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", bg: "https://images.unsplash.com/photo-1755609342513-f058de877a3f?q=80&w=654&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+            { title: "Snake", url: "https://ormsescaperoad.w3spaces.com/snake.html", image: "https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcT6GaC9L4mH7Yqjm_Z_-v0rnbP_ajVCJRyCjz6ljVZVE8XEGNmJx0ttCH3S9bO6OSDmCuqUcKaKBgmJW1-Sf2GxmKYOl6rQlD4NHqfleTqLwERv8Fs", bg: "https://encrypted-tbn1.gstatic.com/licensed-image?q=tbn:ANd9GcT6GaC9L4mH7Yqjm_Z_-v0rnbP_ajVCJRyCjz6ljVZVE8XEGNmJx0ttCH3S9bO6OSDmCuqUcKaKBgmJW1-Sf2GxmKYOl6rQlD4NHqfleTqLwERv8Fs" },
+            { title: "Jordan Math Work", url: "https://w179tp8.beanweb.qzz.io.cdn.cloudflare.net", image: "https://images.unsplash.com/photo-1764555759239-1cd67b7b011f?w=500", bg: "https://images.unsplash.com/photo-1764555759239-1cd67b7b011f?w=1920" },
+            { title: "GNMath", url: "https://bestgn.w3spaces.com", image: "https://images.unsplash.com/photo-1648700231913-ad061d9b3ec9?w=500", bg: "https://images.unsplash.com/photo-1648700231913-ad061d9b3ec9?w=1920" },
+            { title: "Hex", url: "https://www.nddb.coop/ccnddb/games/Hexagon Twist/", image: "https://images.unsplash.com/vector-1761047846560-52720ea86a46?w=500", bg: "https://images.unsplash.com/vector-1761047846560-52720ea86a46?w=1920" },
+            { title: "3DTuning", url: "https://www.3dtuning.com/en-US/", image: "https://images.unsplash.com/vector-1760444486594-c2833a74346a?w=500", bg: "https://images.unsplash.com/vector-1760444486594-c2833a74346a?w=1920" },
+            { title: "Primary", url: "https://www.primarygames.com/", image: "https://images.unsplash.com/photo-1752606402432-9eeb131c6101?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", bg: "https://images.unsplash.com/photo-1752606402432-9eeb131c6101?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+            { title: "Dino", url: "https://ormsescaperoad.w3spaces.com/dino.html", image: "https://images.unsplash.com/vector-1761941086671-a623243d84a3?w=500", bg: "https://images.unsplash.com/vector-1761941086671-a623243d84a3?w=1920" },
+            { title: "Tetris", url: "https://ormsescaperoad.w3spaces.com/tetris.html", image: "https://images.unsplash.com/vector-1753382303802-7d317d852293?w=500", bg: "https://images.unsplash.com/vector-1753382303802-7d317d852293?w=1920" },
+            { title: "Flappy Bird", url: "https://ormsescaperoad.w3spaces.com/bird.html", image: "https://images.unsplash.com/photo-1732198246906-8168ef1ff6bc?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", bg: "https://images.unsplash.com/photo-1732198246906-8168ef1ff6bc?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+            { title: "Delta", url: "https://jakesgordon.com/games/delta/", image: "https://images.unsplash.com/photo-1763906477938-53c45b7c530b?w=500", bg: "https://images.unsplash.com/photo-1763906477938-53c45b7c530b?w=1920" },
+            { title: "FERN", url: "https://s3.amazonaws.com/fernisbest/index.html", image: "https://plus.unsplash.com/premium_photo-1764446765006-2976436e8ac3?q=80&w=387", bg: "https://plus.unsplash.com/premium_photo-1764446765006-2976436e8ac3?w=1920" },
+            { title: "BitLife", url: "https://ormsescaperoad.w3spaces.com/bitlife.html", image: "https://images.unsplash.com/photo-1763897236977-1baa4a026a6d?q=80&w=2064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", bg: "https://images.unsplash.com/photo-1763897236977-1baa4a026a6d?q=80&w=2064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" }
+        ];
+
+        const cloaks = {
+            'none': { title: "Nexus Launcher", icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>" },
+            'google': { title: "Google", icon: "https://www.google.com/favicon.ico" },
+            'clever': { title: "Clever | Portal", icon: "https://assets.clever.com/favicon.ico" },
+            'ixl': { title: "IXL | Math, Language Arts, Science, Social Studies, and Spanish", icon: "https://www.ixl.com/favicon.ico" },
+            'canvas': { title: "Dashboard", icon: "https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico" } 
+        };
+
+        const gameList = document.getElementById('game-list');
+        const bgContainer = document.getElementById('bg-container');
+        const heroTitle = document.getElementById('hero-title');
+        const playBtn = document.getElementById('play-button');
+
+        // --- INIT & AUTH ---
+        function attemptLogin() {
+            const u = document.getElementById('username-input').value.trim();
+            const p = document.getElementById('password-input').value.trim();
+            const r = document.getElementById('remember-me-checkbox').checked;
+            const msg = document.getElementById('login-message');
+
+            if (u === CORRECT_USER && p === CORRECT_PASS) {
+                msg.style.color = "#4ade80"; msg.textContent = "Access Granted.";
+                if(r) { localStorage.setItem('nexusPass', p); localStorage.setItem('nexusRem', 'true'); }
+                else { localStorage.removeItem('nexusPass'); localStorage.removeItem('nexusRem'); }
+                setTimeout(() => { document.getElementById('login-overlay').classList.add('hidden'); init(); }, 500);
+            } else {
+                msg.style.color = "#ff7777"; msg.textContent = "Invalid credentials.";
+            }
+        }
+
+        if(localStorage.getItem('nexusRem') === 'true' && localStorage.getItem('nexusPass') === CORRECT_PASS) {
+            document.getElementById('login-overlay').classList.add('hidden');
+            init();
+        }
+
+        // --- SHUFFLE FUNCTION ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function renderGames() {
+            gameList.innerHTML = ''; // Clear existing cards
+            games.forEach((game, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<img src="${game.image}">`;
+                card.onmouseenter = () => updateHero(index);
+                card.onclick = () => window.open(game.url, '_blank');
+                gameList.appendChild(card);
+            });
+            updateHero(0); // Reset hero to first game
+            // Reset scroll position
+            gameList.scrollLeft = 0;
+        }
+
+        function reshuffleGames() {
+            shuffleArray(games);
+            renderGames();
+        }
+
+        function init() {
+            // Load Settings
+            if(localStorage.getItem('nexusAccent')) updateAccentColor(localStorage.getItem('nexusAccent'));
+            if(localStorage.getItem('tabCloak')) {
+                document.getElementById('cloak-selector').value = localStorage.getItem('tabCloak');
+                updateCloak();
+            }
+
+            // Shuffle on load
+            shuffleArray(games);
+            renderGames();
+        }
+
+        function updateHero(index) {
+            const game = games[index];
+            document.querySelectorAll('.card').forEach((c, i) => c.classList.toggle('active', i === index));
+            
+            bgContainer.classList.remove('bg-animate');
+            void bgContainer.offsetWidth; // Trigger reflow
+            bgContainer.style.backgroundImage = `url('${game.bg}')`;
+            bgContainer.classList.add('bg-animate');
+
+            heroTitle.classList.remove('fade-text');
+            void heroTitle.offsetWidth;
+            heroTitle.textContent = game.title;
+            heroTitle.classList.add('fade-text');
+            
+            playBtn.href = game.url;
+        }
+
+        // --- FIXED SCROLLING LOGIC ---
+        gameList.addEventListener('wheel', (evt) => {
+            evt.preventDefault();
+            gameList.scrollLeft += evt.deltaY;
+        }, { passive: false });
+
+        function scrollCarousel(direction) {
+            const amount = 300; 
+            gameList.scrollBy({
+                left: direction * amount,
+                behavior: 'smooth' 
+            });
+        }
+
+        // --- UTILS ---
+        function switchTab(t) {
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.content-view').forEach(el => el.classList.remove('active-view'));
+            document.getElementById(t + '-view').classList.add('active-view');
+        }
+
+        function updateAccentColor(hex) {
+            document.documentElement.style.setProperty('--accent', hex);
+            document.documentElement.style.setProperty('--accent-soft', hex + '66');
+            localStorage.setItem('nexusAccent', hex);
+            document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+        }
+
+        function updateCloak() {
+            const val = document.getElementById('cloak-selector').value;
+            localStorage.setItem('tabCloak', val);
+            const data = cloaks[val] || cloaks['google'];
+            document.title = data.title;
+            document.getElementById('favicon').href = data.icon;
+        }
+
+        function openAboutBlank() {
+            const win = window.open();
+            win.document.body.style.margin = '0';
+            const iframe = win.document.createElement('iframe');
+            iframe.style.cssText = "border:none; width:100%; height:100vh;";
+            iframe.src = window.location.href;
+            win.document.body.appendChild(iframe);
+        }
+
+        setInterval(() => {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        }, 1000);
+
+    </script>
+</body>
+</html>
